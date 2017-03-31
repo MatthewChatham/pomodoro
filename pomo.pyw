@@ -28,6 +28,11 @@ class App():
         self.pomoCountLabel = tk.StringVar()
         self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
 
+
+        self.pomos = []
+        self.pomoText = tk.StringVar()
+        self.pomoText.set('Pomos:')
+
         
         self.clock = dt.datetime(year=1,
                                  month=1,
@@ -64,12 +69,17 @@ class App():
                                    font=('',16))
 
 
+        self.pomosLabel = tk.Label(textvariable=self.pomoText,
+                                   font=('',16))
+
+
         self.clockLabel.grid()
         self.taskLabel.grid()
         self.setbutton.grid()
         self.gobutton.grid()
         self.resetbutton.grid()
         self.countLabel.grid()
+        self.pomosLabel.grid()
 
         
         self.root.mainloop()
@@ -77,15 +87,24 @@ class App():
     def go(self):
         self.goPresses += 1
         self.counting = True
-        if self.goPresses == 1: self.update_clock()
+        if self.goPresses == 1:
+            self.update_clock()
+            pomo = {'name': self.task.get()[6:],
+                    'start': dt.datetime.now().strftime('%H:%M'),
+                    'end': (dt.datetime.now() + dt.timedelta(minutes=self.MINUTES, seconds=self.SECONDS)).strftime('%H:%M')}
+            self.pomos.append(pomo)
+
 
     def update_clock(self):
         if self.counting:
             if self.clock.strftime('%M:%S') == '00:00':
-                self.current.set('Done!')
+                self.current.set('One pomodoro down!')
                 self.root.deiconify()
                 self.pomoCount += 1
                 self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
+                self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
+                                                                                   self.pomos[-1]['end'],
+                                                                                   self.pomos[-1]['name']))
                 return
             self.clock = self.clock - dt.timedelta(seconds=1)
             self.current.set(self.clock.strftime('%M:%S'))
