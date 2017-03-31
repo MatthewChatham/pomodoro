@@ -20,6 +20,7 @@ class App():
         self.root.resizable(0,0)
         self.root.lift()
         self.root.attributes('-topmost', True)
+        self.root.protocol("WM_DELETE_WINDOW", self.export_pomos)
 
         
         self.goPresses = 0
@@ -123,5 +124,13 @@ class App():
         self.current.set(self.clock.strftime('%M:%S'))
         self.counting = False
         self.goPresses = 0
+
+    def export_pomos(self):
+        with open(dt.datetime.now().strftime('%b %d') + '.txt', 'w') as outfile:
+            for pomo in self.pomos:
+                outfile.write('{} - {}: {}\n'.format(pomo['start'],
+                                                   pomo['end'],
+                                                   pomo['name']))
+        self.root.destroy()
 
 app=App()
