@@ -6,6 +6,7 @@
 #
 
 import tkinter as tk
+import tkinter.simpledialog as sd
 import datetime as dt
 
 # Simple timer
@@ -19,6 +20,8 @@ class App():
         self.root.resizable(0,0)
         self.root.lift()
         self.root.attributes('-topmost', True)
+
+        
         self.clock = dt.datetime(year=1,
                                  month=1,
                                  day=1,
@@ -26,13 +29,26 @@ class App():
                                  second=self.SECONDS)
         self.current = tk.StringVar()
         self.current.set(self.clock.strftime('%M:%S'))
-        self.label = tk.Label(textvariable=self.current,
+        self.clockLabel = tk.Label(textvariable=self.current,
                               font=('',25))
-        self.label.grid()
-        self.startbutton = tk.Button(text='Start / Reset Timer',
-                                     command=self.update_clock,
+
+
+        self.task = tk.StringVar()
+        self.task.set('Task:')
+        self.taskLabel = tk.Label(textvariable=self.task,
+                                  font=('',25))
+
+        
+        self.startbutton = tk.Button(text='Set a pomo',
+                                     command=self.set_pomo,
                                      font=('',16))
+
+
+        self.clockLabel.grid()
+        self.taskLabel.grid()
         self.startbutton.grid()
+
+        
         self.root.mainloop()
 
     def update_clock(self):
@@ -51,5 +67,9 @@ class App():
         self.clock = self.clock - dt.timedelta(seconds=1)
         self.current.set(self.clock.strftime('%M:%S'))
         self.root.after(1000, self.update_clock)
+
+    def set_pomo(self):
+        dialog = sd.askstring(title='Task', prompt='Enter task:')
+        if dialog: self.task.set('Task: ' + dialog)
 
 app=App()
