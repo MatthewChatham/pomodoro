@@ -12,16 +12,22 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 25
-    SECONDS = 0
+    MINUTES = 0
+    SECONDS = 3
     
     def __init__(self):
         self.root = tk.Tk()
         self.root.resizable(0,0)
         self.root.lift()
         self.root.attributes('-topmost', True)
+
+        
         self.goPresses = 0
         self.counting = False
+        self.pomoCount = 0
+        self.pomoCountLabel = tk.StringVar()
+        self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
+
         
         self.clock = dt.datetime(year=1,
                                  month=1,
@@ -54,11 +60,16 @@ class App():
                                      font=('',16))
 
 
+        self.countLabel = tk.Label(textvariable=self.pomoCountLabel,
+                                   font=('',16))
+
+
         self.clockLabel.grid()
         self.taskLabel.grid()
         self.setbutton.grid()
         self.gobutton.grid()
         self.resetbutton.grid()
+        self.countLabel.grid()
 
         
         self.root.mainloop()
@@ -73,6 +84,8 @@ class App():
             if self.clock.strftime('%M:%S') == '00:00':
                 self.current.set('Done!')
                 self.root.deiconify()
+                self.pomoCount += 1
+                self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
                 return
             self.clock = self.clock - dt.timedelta(seconds=1)
             self.current.set(self.clock.strftime('%M:%S'))
