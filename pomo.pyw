@@ -126,11 +126,12 @@ class App():
         self.goPresses = 0
 
     def export_pomos(self):
-        with open(dt.datetime.now().strftime('%b %d') + '.txt', 'w') as outfile:
+        with open('Log' + '.csv', 'a') as outfile:
             for pomo in self.pomos:
-                outfile.write('{} - {}: {}\n'.format(pomo['start'],
-                                                   pomo['end'],
-                                                   pomo['name']))
+                outfile.write('{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
+                                                                                pomo['start'],
+                                                                                pomo['end'],
+                                                                                pomo['name']))
         self.root.destroy()
 
 app=App()
