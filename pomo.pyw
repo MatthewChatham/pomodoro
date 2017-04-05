@@ -12,8 +12,8 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 25
-    SECONDS = 0
+    MINUTES = 0
+    SECONDS = 10
     
     def __init__(self):
         self.root = tk.Tk()
@@ -68,7 +68,7 @@ class App():
                                   font=('',16),
                                   bg="Light Green")
 
-        self.resetbutton = tk.Button(text='Reset',
+        self.resetbutton = tk.Button(text='END / RESET',
                                      command=self.reset_clock,
                                      font=('',16),
                                      bg="Red")
@@ -93,6 +93,9 @@ class App():
         self.root.mainloop()
 
     def go(self):
+        if self.clock.strftime('%M:%S') == '00:00':
+            self.reset_clock()
+            self.go()
         self.goPresses += 1
         self.counting = True
         if self.goPresses == 1:
@@ -113,17 +116,19 @@ class App():
                 self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
                                                                                    self.pomos[-1]['end'],
                                                                                    self.pomos[-1]['name']))
+                self.counting = False
                 return
             self.clock = self.clock - dt.timedelta(seconds=1)
             self.current.set(self.clock.strftime('%M:%S'))
             self.root.after(1000, self.update_clock)
 
     def set_pomo(self):
-        dialog = sd.askstring(title='Task', prompt='Enter task:')
-        if dialog: self.task.set('Task: ' + dialog)
+        if self.counting == False:
+            dialog = sd.askstring(title='Task', prompt='Enter task:')
+            if dialog: self.task.set('Task: ' + dialog)
 
     def reset_clock(self):
-        if self.clock.strftime('%M:%S') != '00:00':
+        if self.clock.strftime('%M:%S') != '00:00' and self.clock.strftime('%M:%S') != '{:02d}:{:02d}'.format(self.MINUTES, self.SECONDS):
             self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
             self.pomoCount += 1
             self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
@@ -138,7 +143,6 @@ class App():
         self.current.set(self.clock.strftime('%M:%S'))
         self.counting = False
         self.goPresses = 0
-
 
     def export_pomos(self):
         with open('Log' + '.csv', 'a') as outfile:
