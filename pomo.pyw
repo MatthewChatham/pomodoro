@@ -25,8 +25,6 @@ class App():
         self.root.protocol("WM_DELETE_WINDOW", self.export_pomos)
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
-
-
         
         self.goPresses = 0
         self.counting = False
@@ -125,6 +123,13 @@ class App():
         if dialog: self.task.set('Task: ' + dialog)
 
     def reset_clock(self):
+        if self.clock.strftime('%M:%S') != '00:00':
+            self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
+            self.pomoCount += 1
+            self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
+            self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
+                                                                           self.pomos[-1]['end'],
+                                                                           self.pomos[-1]['name']))
         self.clock = dt.datetime(year=1,
                                  month=1,
                                  day=1,
@@ -133,18 +138,13 @@ class App():
         self.current.set(self.clock.strftime('%M:%S'))
         self.counting = False
         self.goPresses = 0
-        self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
-        self.pomoCount += 1
-        self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
-        self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
-                                                                       self.pomos[-1]['end'],
-                                                                       self.pomos[-1]['name']))
+
 
     def export_pomos(self):
         with open('Log' + '.csv', 'a') as outfile:
             for pomo in self.pomos:
                 outfile.write('{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
-                                                                                pomo['start'],
+                                                                                    pomo['start'],
                                                                                 pomo['end'],
                                                                                 pomo['name']))
         self.root.destroy()
