@@ -12,22 +12,27 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 0
-    SECONDS = 3
+    MINUTES = 25
+    SECONDS = 0
     
     def __init__(self):
         self.root = tk.Tk()
+        self.root.wm_title("Pomodoro Timer")
         self.root.resizable(0,0)
+        self.root.minsize(width=500, height=150)
         self.root.lift()
         self.root.attributes('-topmost', True)
         self.root.protocol("WM_DELETE_WINDOW", self.export_pomos)
+        self.root.columnconfigure(0, weight=1)
+        self.root.columnconfigure(1, weight=1)
+
 
         
         self.goPresses = 0
         self.counting = False
         self.pomoCount = 0
         self.pomoCountLabel = tk.StringVar()
-        self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
+        self.pomoCountLabel.set('{}'.format(self.pomoCount))
 
 
         self.pomos = []
@@ -43,7 +48,9 @@ class App():
         self.current = tk.StringVar()
         self.current.set(self.clock.strftime('%M:%S'))
         self.clockLabel = tk.Label(textvariable=self.current,
-                              font=('',25))
+                              font=('',20),
+                                   relief=tk.SUNKEN,
+                                   bg="Orange")
 
 
         self.task = tk.StringVar()
@@ -54,16 +61,19 @@ class App():
         
         self.setbutton = tk.Button(text='Set a pomo',
                                      command=self.set_pomo,
-                                     font=('',16))
+                                     font=('',16),
+                                   bg="Light Gray")
 
 
         self.gobutton = tk.Button(text='GO!',
                                   command=self.go,
-                                  font=('',16))
+                                  font=('',16),
+                                  bg="Light Green")
 
         self.resetbutton = tk.Button(text='Reset',
                                      command=self.reset_clock,
-                                     font=('',16))
+                                     font=('',16),
+                                     bg="Red")
 
 
         self.countLabel = tk.Label(textvariable=self.pomoCountLabel,
@@ -73,14 +83,13 @@ class App():
         self.pomosLabel = tk.Label(textvariable=self.pomoText,
                                    font=('',16))
 
-
-        self.clockLabel.grid()
-        self.taskLabel.grid()
-        self.setbutton.grid()
-        self.gobutton.grid()
-        self.resetbutton.grid()
-        self.countLabel.grid()
-        self.pomosLabel.grid()
+        self.taskLabel.grid(columnspan=2)
+        self.clockLabel.grid(columnspan=2, pady=5)
+        self.setbutton.grid(columnspan=2)
+        self.gobutton.grid(sticky=tk.E, padx=2.5)
+        self.resetbutton.grid(row=3, column=1, sticky=tk.W, padx=2.5, pady=5)
+        #self.countLabel.grid(row=0,column=3)
+        self.pomosLabel.grid(columnspan=2)
 
         
         self.root.mainloop()
@@ -124,6 +133,12 @@ class App():
         self.current.set(self.clock.strftime('%M:%S'))
         self.counting = False
         self.goPresses = 0
+        self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
+        self.pomoCount += 1
+        self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
+        self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
+                                                                       self.pomos[-1]['end'],
+                                                                       self.pomos[-1]['name']))
 
     def export_pomos(self):
         with open('Log' + '.csv', 'a') as outfile:
