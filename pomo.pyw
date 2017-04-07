@@ -12,8 +12,8 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 0
-    SECONDS = 10
+    MINUTES = 25
+    SECONDS = 0
     
     def __init__(self):
         self.root = tk.Tk()
@@ -25,6 +25,7 @@ class App():
         self.root.protocol("WM_DELETE_WINDOW", self.export_pomos)
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
+        self.root.iconbitmap('pomo.ico')
         
         self.goPresses = 0
         self.counting = False
@@ -34,6 +35,8 @@ class App():
 
 
         self.pomos = []
+        self.init = dict()
+        self.breaks = []
         self.pomoText = tk.StringVar()
         self.pomoText.set('Pomos:')
 
@@ -93,6 +96,21 @@ class App():
         self.root.mainloop()
 
     def go(self):
+        if len(self.pomos) == 0:
+            arrival = sd.askstring(title='Arrival Time', prompt='When did you arrive at work?')
+            activity = sd.askstring(title='Setting Up', prompt='What have you been doing since getting to work?')
+            initial = {'name': activity,
+                       'type': 'Initial',
+                       'start': arrival,
+                       'end': dt.datetime.now().strftime('%H:%M')}
+            self.init = initial
+        elif len(self.pomos) > 0:
+            activity = sd.askstring(title='Break', prompt='What have you been doing since the last pomo?')
+            brk = {'name': activity,
+                   'type': 'Break',
+                   'start': self.pomos[-1]['end'],
+                   'end': dt.datetime.now().strftime('%H:%M')}
+            self.breaks.append(brk)
         if self.clock.strftime('%M:%S') == '00:00':
             self.reset_clock()
             self.go()
@@ -101,6 +119,7 @@ class App():
         if self.goPresses == 1:
             self.update_clock()
             pomo = {'name': self.task.get()[6:],
+                    'type': 'Pomodoro',
                     'start': dt.datetime.now().strftime('%H:%M'),
                     'end': (dt.datetime.now() + dt.timedelta(minutes=self.MINUTES, seconds=self.SECONDS)).strftime('%H:%M')}
             self.pomos.append(pomo)
@@ -146,11 +165,16 @@ class App():
 
     def export_pomos(self):
         with open('Log' + '.csv', 'a') as outfile:
-            for pomo in self.pomos:
-                outfile.write('{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
-                                                                                    pomo['start'],
-                                                                                pomo['end'],
-                                                                                pomo['name']))
+            day = [self.init]
+            for item in zip(self.pomos, self.breaks):
+                day.append(item[0])
+                day.append(item[1])
+            for item in day:
+                outfile.write('{},{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
+                                                        item['start'],
+                                                        item['end'],
+                                                        item['name'],
+                                                        item['type']))
         self.root.destroy()
 
 app=App()
