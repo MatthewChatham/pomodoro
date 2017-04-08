@@ -7,13 +7,14 @@
 
 import tkinter as tk
 import tkinter.simpledialog as sd
+import tkinter.messagebox as mb
 import datetime as dt
 
 # Simple timer
 class App():
 
-    MINUTES = 25
-    SECONDS = 0
+    MINUTES = 0
+    SECONDS = 2
     
     def __init__(self):
         self.root = tk.Tk()
@@ -96,29 +97,39 @@ class App():
         self.root.mainloop()
 
     def go(self):
+        if self.clock.strftime('%M:%S') == '00:00':
+            self.reset_clock()
+            self.go()
         if len(self.pomos) == 0:
             arrival = sd.askstring(title='Arrival Time', prompt='When did you arrive at work?')
+            if arrival == None: return
+            try: arrival = dt.datetime.strptime(arrival, '%H:%M')
+            except:
+                mb.showwarning(title='Warning!', message='Please enter a valid time.')
+                return
+            arrival = arrival.strftime('%H:%M')
             activity = sd.askstring(title='Setting Up', prompt='What have you been doing since getting to work?')
+            if activity == None: return
+            activity = '"' + activity + '"'
             initial = {'name': activity,
                        'type': 'Initial',
                        'start': arrival,
                        'end': dt.datetime.now().strftime('%H:%M')}
             self.init = initial
-        elif len(self.pomos) > 0:
+        elif len(self.pomos) > 0 and not self.counting:
             activity = sd.askstring(title='Break', prompt='What have you been doing since the last pomo?')
+            if activity == None: return
+            activity = '"' + activity + '"'
             brk = {'name': activity,
                    'type': 'Break',
                    'start': self.pomos[-1]['end'],
                    'end': dt.datetime.now().strftime('%H:%M')}
             self.breaks.append(brk)
-        if self.clock.strftime('%M:%S') == '00:00':
-            self.reset_clock()
-            self.go()
         self.goPresses += 1
         self.counting = True
         if self.goPresses == 1:
             self.update_clock()
-            pomo = {'name': self.task.get()[6:],
+            pomo = {'name': '"' + self.task.get()[6:] + '"',
                     'type': 'Pomodoro',
                     'start': dt.datetime.now().strftime('%H:%M'),
                     'end': (dt.datetime.now() + dt.timedelta(minutes=self.MINUTES, seconds=self.SECONDS)).strftime('%H:%M')}
@@ -134,7 +145,7 @@ class App():
                 self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
                 self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
                                                                                    self.pomos[-1]['end'],
-                                                                                   self.pomos[-1]['name']))
+                                                                                   self.pomos[-1]['name'].strip('"')))
                 self.counting = False
                 return
             self.clock = self.clock - dt.timedelta(seconds=1)
@@ -144,16 +155,19 @@ class App():
     def set_pomo(self):
         if self.counting == False:
             dialog = sd.askstring(title='Task', prompt='Enter task:')
-            if dialog: self.task.set('Task: ' + dialog)
+            if dialog:
+                dialog = '"' + dialog + '"'
+                self.task.set('Task: ' + dialog.strip('"'))
+            else: return
 
     def reset_clock(self):
-        if self.clock.strftime('%M:%S') != '00:00' and self.clock.strftime('%M:%S') != '{:02d}:{:02d}'.format(self.MINUTES, self.SECONDS):
+        if self.counting:
             self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
             self.pomoCount += 1
             self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
             self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
                                                                            self.pomos[-1]['end'],
-                                                                           self.pomos[-1]['name']))
+                                                                           self.pomos[-1]['name'].strip('"')))
         self.clock = dt.datetime(year=1,
                                  month=1,
                                  day=1,
@@ -164,17 +178,30 @@ class App():
         self.goPresses = 0
 
     def export_pomos(self):
-        with open('Log' + '.csv', 'a') as outfile:
-            day = [self.init]
-            for item in zip(self.pomos, self.breaks):
-                day.append(item[0])
-                day.append(item[1])
-            for item in day:
-                outfile.write('{},{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
-                                                        item['start'],
-                                                        item['end'],
-                                                        item['name'],
-                                                        item['type']))
+        if self.init:
+            with open('Log' + '.csv', 'a') as outfile:
+                day = list()
+                day.append(self.init)
+                for i in range(len(self.pomos) - 1):
+                    day.append(self.pomos[i])
+                    day.append(self.breaks[i])
+                else: day.append(self.pomos[-1])
+
+
+                activity = sd.askstring(title='Finishing Up', prompt='What have you been doing since your last pomo?')
+                if activity == None: return
+                activity = '"' + activity + '"'
+                ending = {'name': activity,
+                       'type': 'Final',
+                       'start': self.pomos[-1]['end'],
+                       'end': dt.datetime.now().strftime('%H:%M')}
+                day.append(ending)
+                for item in day:
+                    outfile.write('{},{},{},{},{}\n'.format(dt.datetime.now().strftime('%b %d'),
+                                                            item['start'],
+                                                            item['end'],
+                                                            item['name'],
+                                                            item['type']))
         self.root.destroy()
 
 app=App()
