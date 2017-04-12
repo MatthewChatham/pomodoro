@@ -13,8 +13,8 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 0
-    SECONDS = 2
+    MINUTES = 25
+    SECONDS = 0
     
     def __init__(self):
         self.root = tk.Tk()
