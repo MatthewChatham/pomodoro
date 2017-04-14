@@ -13,8 +13,8 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 25
-    SECONDS = 0
+    MINUTES = 0
+    SECONDS = 2
     
     def __init__(self):
         self.root = tk.Tk()
@@ -30,12 +30,13 @@ class App():
         
         self.goPresses = 0
         self.counting = False
-        self.pomoCount = 0
         self.pomoCountLabel = tk.StringVar()
-        self.pomoCountLabel.set('{}'.format(self.pomoCount))
+        
 
 
         self.pomos = []
+        self.pomoCount = len(self.pomos)
+        self.pomoCountLabel.set('{}'.format(self.pomoCount))
         self.init = dict()
         self.breaks = []
         self.pomoText = tk.StringVar()
@@ -136,6 +137,7 @@ class App():
                     'start': dt.datetime.now().strftime('%H:%M'),
                     'end': (dt.datetime.now() + dt.timedelta(minutes=self.MINUTES, seconds=self.SECONDS)).strftime('%H:%M')}
             self.pomos.append(pomo)
+            self.pomoCount += 1
 
 
     def update_clock(self):
@@ -143,12 +145,12 @@ class App():
             if self.clock.strftime('%M:%S') == '00:00':
                 self.current.set('One pomodoro down!')
                 self.root.deiconify()
-                self.pomoCount += 1
                 self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
                 self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
                                                                                    self.pomos[-1]['end'],
                                                                                    self.pomos[-1]['name'].strip('"')))
                 self.counting = False
+                if self.pomoCount % 4 == 0: mb.showwarning(title='Take a break!', message='Time to take a longer break!')
                 return
             self.clock = self.clock - dt.timedelta(seconds=1)
             self.current.set(self.clock.strftime('%M:%S'))
@@ -165,11 +167,11 @@ class App():
     def reset_clock(self):
         if self.counting:
             self.pomos[-1]['end'] = dt.datetime.now().strftime("%H:%M")
-            self.pomoCount += 1
             self.pomoCountLabel.set('Pomos completed: {}'.format(self.pomoCount))
             self.pomoText.set(self.pomoText.get() + '\n{} - {}: {}'.format(self.pomos[-1]['start'],
                                                                            self.pomos[-1]['end'],
                                                                            self.pomos[-1]['name'].strip('"')))
+            if self.pomoCount % 4 == 0: mb.showwarning(title='Take a break!', message='Time to take a longer break!')
         self.clock = dt.datetime(year=1,
                                  month=1,
                                  day=1,
