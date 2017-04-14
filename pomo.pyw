@@ -13,8 +13,8 @@ import datetime as dt
 # Simple timer
 class App():
 
-    MINUTES = 25
-    SECONDS = 0
+    MINUTES = 0
+    SECONDS = 2
     
     def __init__(self):
         self.root = tk.Tk()
@@ -97,9 +97,11 @@ class App():
         self.root.mainloop()
 
     def go(self):
+        print("Entered go")
         if self.clock.strftime('%M:%S') == '00:00':
             self.reset_clock()
             self.go()
+            return
         if len(self.pomos) == 0:
             arrival = sd.askstring(title='Arrival Time', prompt='When did you arrive at work?')
             if arrival == None: return
@@ -118,7 +120,9 @@ class App():
             self.init = initial
         elif len(self.pomos) > 0 and not self.counting:
             activity = sd.askstring(title='Break', prompt='What have you been doing since the last pomo?')
-            if activity == None: return
+            if activity == None:
+                print("Clicked cancel")
+                return
             activity = '"' + activity + '"'
             brk = {'name': activity,
                    'type': 'Break',
